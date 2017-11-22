@@ -198,7 +198,10 @@ class Application(Frame):
             global img
 
 
-            #enter your code here
+            self.erosion()
+            self.dilation()
+
+
 
 
 
@@ -206,7 +209,9 @@ class Application(Frame):
 
             global img
 
-            #enter your code here
+            self.dilation()
+            self.erosion()
+
 
 
     def open_close(self):
@@ -215,14 +220,17 @@ class Application(Frame):
             global E1
             global E2
 
-            #enter your code here
+            self.open()
+            self.close()
 
 
     def close_open(self):
 
             global img
 
-           #enter your code here
+            self.close()
+            self.open()
+
 
 
 
