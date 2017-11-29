@@ -256,48 +256,17 @@ class Window(Frame):
             for i in range(0, it):
 
                 if (it==0):
-                    kernel[0][0] = 0
-                    kernel[0][1] = 1
-                    kernel[0][2] = 0
-                    kernel[1][0] = 0
-                    kernel[1][1] = 1
-                    kernel[1][2] = 1
-                    kernel[2][0] = 0
-                    kernel[2][1] = 0
-                    kernel[2][2] = 0
-
+                    kernel = np.array([[0, 1, 0], [0, 1, 1], [0, 0, 0]])
+                   
                 if (it==1):
-                    kernel[0][0] = 0
-                    kernel[0][1] = 1
-                    kernel[0][2] = 0
-                    kernel[1][0] = 1
-                    kernel[1][1] = 1
-                    kernel[1][2] = 0
-                    kernel[2][0] = 0
-                    kernel[2][1] = 0
-                    kernel[2][2] = 0
+                    kernel = np.array([[0, 1, 0], [1, 1, 0], [0, 0, 0]])
 
                 if (it==2):
-                    kernel[0][0] = 0
-                    kernel[0][1] = 0
-                    kernel[0][2] = 0
-                    kernel[1][0] = 1
-                    kernel[1][1] = 1
-                    kernel[1][2] = 0
-                    kernel[2][0] = 0
-                    kernel[2][1] = 1
-                    kernel[2][2] = 0
+                    kernel = np.array([[0, 0, 0], [1, 1, 0], [0, 1, 0]])
 
                 if (it==3):
-                    kernel[0][0] = 0
-                    kernel[0][1] = 0
-                    kernel[0][2] = 0
-                    kernel[1][0] = 0
-                    kernel[1][1] = 1
-                    kernel[1][2] = 1
-                    kernel[2][0] = 0
-                    kernel[2][1] = 1
-                    kernel[2][2] = 0
+                    kernel = np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]])
+
 
                 for py in range(3, h[1] - 3):
                     for px in range(3, h[0] - 3):
@@ -305,7 +274,7 @@ class Window(Frame):
                         sum = 0
 
                         for ky in range(0,3):
-                            print(ky)
+                            #print(ky)
                             for kx in range(0,2):
                                 sum = sum + (img[px+kx, py+ky]*kernel[kx][ky])
 
