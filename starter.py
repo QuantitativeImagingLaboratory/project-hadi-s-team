@@ -70,7 +70,7 @@ class Window(Frame):
         imgg.image = render
         imgg.place(x=300, y=180)
 
-
+#########################################################################
 
     def erosion(self):
 
@@ -130,6 +130,8 @@ class Window(Frame):
 
             img = output
 
+
+###################################################################################
     def dilation(self):
         global img
         global E1
@@ -221,12 +223,105 @@ class Window(Frame):
 
         self.open()
 
+
+##########################################################################
     def hitmiss(self):
 
         global img
+        global E1
+        global E2
 
-        # enter your code here
+        h = img.shape
+        ret, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
 
+        iteration = 4
+        dim = 3
+
+        it = int(iteration)
+
+        kernel = np.ones((dim, dim), np.uint8)
+
+        output = np.zeros((h[0], h[1]), np.uint8)
+        flag = 0
+
+        for py in range(0, h[1]):
+            for px in range(0, h[0]):
+
+                if (img[px, py] > 0) and (img[px, py] < 255):
+                    flag = 1
+
+                    break
+
+        if (flag == 0):
+            for i in range(0, it):
+
+                if (it==0):
+                    kernel[0][0] = 0
+                    kernel[0][1] = 1
+                    kernel[0][2] = 0
+                    kernel[1][0] = 0
+                    kernel[1][1] = 1
+                    kernel[1][2] = 1
+                    kernel[2][0] = 0
+                    kernel[2][1] = 0
+                    kernel[2][2] = 0
+
+                if (it==1):
+                    kernel[0][0] = 0
+                    kernel[0][1] = 1
+                    kernel[0][2] = 0
+                    kernel[1][0] = 1
+                    kernel[1][1] = 1
+                    kernel[1][2] = 0
+                    kernel[2][0] = 0
+                    kernel[2][1] = 0
+                    kernel[2][2] = 0
+
+                if (it==2):
+                    kernel[0][0] = 0
+                    kernel[0][1] = 0
+                    kernel[0][2] = 0
+                    kernel[1][0] = 1
+                    kernel[1][1] = 1
+                    kernel[1][2] = 0
+                    kernel[2][0] = 0
+                    kernel[2][1] = 1
+                    kernel[2][2] = 0
+
+                if (it==3):
+                    kernel[0][0] = 0
+                    kernel[0][1] = 0
+                    kernel[0][2] = 0
+                    kernel[1][0] = 0
+                    kernel[1][1] = 1
+                    kernel[1][2] = 1
+                    kernel[2][0] = 0
+                    kernel[2][1] = 1
+                    kernel[2][2] = 0
+
+                for py in range(3, h[1] - 3):
+                    for px in range(3, h[0] - 3):
+
+                        sum = 0
+
+                        for ky in range(0,3):
+                            print(ky)
+                            for kx in range(0,2):
+                                sum = sum + (img[px+kx, py+ky]*kernel[kx][ky])
+
+
+                        if (sum == (3 * 255)):
+                            output[px, py] = 255
+
+            img = output
+
+
+
+        self.render()
+
+
+            # enter your code here
+##########################################################################3
     def Skeletonization(self):
 
         global img
