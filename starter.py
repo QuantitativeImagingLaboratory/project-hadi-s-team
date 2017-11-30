@@ -479,6 +479,13 @@ class Window(Frame):
                 output[one_x+1,one_y-1] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
                 continue
+        #Better way
+        #calculate the major eigenvalue of the Hessian matrix at each pixel
+        #from skimage.feature import hessian_matrix, hessian_matrix_eigvals
+
+        #hxx, hxy, hyy = hessian_matrix(img, sigma=3)
+        #i1, i2 = hessian_matrix_eigvals(hxx, hxy, hyy)
+        #img = i1
 
         img = output2
         self.render()
