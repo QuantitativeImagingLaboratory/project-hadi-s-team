@@ -7,7 +7,9 @@ from tkinter import filedialog
 # http://www.lfd.uci.edu/~gohlke/pythonlibs/#pillow
 from PIL import Image, ImageTk
 
-# Ref https://github.com/linbojin/Skeletonization-by-Zhang-Suen-Thinning-Algorithm
+# Zhang-Suen Thinning Algorithm
+# Ref1 https://github.com/linbojin/Skeletonization-by-Zhang-Suen-Thinning-Algorithm
+# Ref2 https://rosettacode.org/wiki/Zhang-Suen_thinning_algorithm#Python
 def neighbours(x,y,image):
     "Return 8-neighbours of image point P1(x,y), in a clockwise order"
     img = image
