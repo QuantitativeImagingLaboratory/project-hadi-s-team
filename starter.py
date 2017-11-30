@@ -428,17 +428,30 @@ class Window(Frame):
         #Distance Map
         list_zeros = []
         list_ones = []
-        for i in range(n):
-            for j in range(m):
+        for i in range(1,n-1):
+            for j in range(1,m-1):
+                #all whites
                 if img[i,j] == 255:
                     list_ones.append((i,j))
-                if img[i,j] == 0:
+                #zeros with at least one white neighbor
+                if (img[i,j] == 0 and
+                    sum([img[i-1,j-1],
+                        img[i-1,j],
+                        img[i-1,j+1],
+                        img[i,j+1],
+                        img[i+1,j+1],
+                        img[i+1,j],
+                        img[i+1,j-1],
+                        img[i,j-1]]) != 0
+                    ):
                     list_zeros.append((i,j))
 
         for one_x, one_y in list_ones:
             min_distance = [0, 0, 0]
             for zero_x, zero_y in list_zeros:
-                distance = abs(zero_x-one_x)+abs(zero_y-one_y)
+                #distance = abs(zero_x-one_x)+abs(zero_y-one_y)
+                distance = abs(zero_x-one_x)**2+abs(zero_y-one_y)**2
+                distance = int(np.sqrt(distance))
                 if min_distance[0] == 0 or min_distance[0] > distance:
                     min_distance = [distance, zero_x, zero_y]
             output[one_x,one_y] = min_distance[0]
