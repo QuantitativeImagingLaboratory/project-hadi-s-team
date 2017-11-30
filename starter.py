@@ -239,8 +239,8 @@ class Window(Frame):
 
         h = img.shape
         ret, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
-        print(ret)
-        print(img)
+        #print(ret)
+        #print(img)
 
         iteration = 4
         dim = 3
