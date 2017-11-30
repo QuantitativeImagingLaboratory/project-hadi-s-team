@@ -1,3 +1,4 @@
+
 from tkinter import *
 import numpy as np
 import cv2
@@ -6,6 +7,77 @@ from tkinter import filedialog
 #download and install pillow:
 # http://www.lfd.uci.edu/~gohlke/pythonlibs/#pillow
 from PIL import Image, ImageTk
+
+####################################################################################
+# Levent Dane
+####################################################################################
+
+# Zhang-Suen Thinning Algorithm
+# Ref1 https://github.com/linbojin/Skeletonization-by-Zhang-Suen-Thinning-Algorithm
+# Ref2 https://rosettacode.org/wiki/Zhang-Suen_thinning_algorithm#Python
+# Ref3 http://rstudio-pubs-static.s3.amazonaws.com/302782_e337cfbc5ad24922bae96ca5977f4da8.html
+
+def neighbours(x,y,image):
+    "Return 8-neighbours of image point P1(x,y), in a clockwise order"
+    img = image
+    x_1, y_1, x1, y1 = x-1, y-1, x+1, y+1
+    return [ img[x_1][y], img[x_1][y1], img[x][y1], img[x1][y1],     # P2,P3,P4,P5
+                img[x1][y], img[x1][y_1], img[x][y_1], img[x_1][y_1] ]    # P6,P7,P8,P9
+
+def transitions(neighbours):
+    n = neighbours + neighbours[0:1]      # P2, P3, ... , P8, P9, P2
+    res = 0
+    for i in range(len(n)-1):
+        if n[i] == 0 and n[i+1] == 1:
+            res+=1
+    return res
+
+def thinning(image):
+    output = image.copy()
+    step1 = []
+    rows, columns  = output.shape
+    # Step1
+    for x in range(1, rows - 1):
+        for y in range(1, columns - 1):
+            P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, output)
+            if (output[x][y] == 1   and # Pixel White? 
+                2 <= sum(n) <= 6    and # How many white neighbour?
+                transitions(n) == 1 and # How many transitions around?
+                P2 * P4 * P6 == 0   and # At least one of the north, east, and south neighbors is white
+                P4 * P6 * P8 == 0):     # At least one of east, south, and west neighbors is white
+                step1.append((x,y))
+
+    # Clean all the step1 points
+    for x, y in step1:
+        output[x][y] = 0
+
+    # Step 2
+    step2 = []
+    for x in range(1, rows - 1):
+        for y in range(1, columns - 1):
+            P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, output)
+            if (output[x][y] == 1   and
+                2 <= sum(n) <= 6    and
+                transitions(n) == 1 and
+                P2 * P4 * P8 == 0   and # At least one of the north, east, and west neighbors is white
+                P2 * P6 * P8 == 0):     # At least one of north, south, and west neighbors is white
+                step2.append((x,y))
+
+    # Clean all the step2 points
+    for x, y in step2:
+        output[x][y] = 0
+    return output, len(step1) + len(step2)
+
+def skeleton_img(image):
+    "the Zhang-Suen Thinning Algorithm"
+    done = 1        #  the points to be removed (set as 0)
+    while done:     #  iterates until no further changes occur in the image
+        image, done = thinning(image)
+    return image
+
+####################################################################################
+# Levent Dane
+####################################################################################
 
 
 class Window(Frame):
@@ -297,29 +369,161 @@ class Window(Frame):
 
         #self.render()
 
+####################################################################################
+# Levent Dane
+####################################################################################
 
-            # enter your code here
-##########################################################################3
+    def get_value(self, x):
+        if x.get() == '':
+            from tkinter import messagebox
+            messagebox.showerror('Ups', 'Please enter a value')
+        else:
+            return int(x.get())
+
+    def Majority(self):
+        global img
+        self.showImg(filename,)
+
+        it = self.get_value(E1)
+        k = self.get_value(E2)
+
+        n,m = img.shape
+        output = np.zeros((n,m), np.uint8)
+        for x in range(n):
+            for y in range(m):
+                px1=max(x-k,0)
+                px2=min(x+k,n)
+                py1=max(y-k,0)
+                py2=min(y+k,m)
+                # Using np.median and np slicing
+                #output[x,y] = np.median(img[px1:px2,py1:py2])
+                # do manually
+                values = []
+                for i in range(px1,px2):
+                    for j in range(py1,py2):
+                        values.append(img[i,j])
+                values=sorted(values)
+                med = int(len(values)/2)
+                output[x,y] = values[med]
+
+        img = output
+
+        self.render()
+
+
     def Skeletonization(self):
-
         global img
+
+        img = img/255
+        img = skeleton_img(img)
+        img = img*255
+
+        self.render()
+
+    def Skel_Distance(self):
         global img
-        global E1
-        global E2
+        n,m = img.shape
+        output = np.zeros((n,m), np.uint8)
 
-        it = int(E1.get())
+        #Distance Map
+        list_zeros = []
+        list_ones = []
+        for i in range(1,n-1):
+            for j in range(1,m-1):
+                #all whites
+                if img[i,j] == 255:
+                    list_ones.append((i,j))
+                #zeros with at least one white neighbor
+                if (img[i,j] == 0 and
+                    sum([img[i-1,j-1],
+                        img[i-1,j],
+                        img[i-1,j+1],
+                        img[i,j+1],
+                        img[i+1,j+1],
+                        img[i+1,j],
+                        img[i+1,j-1],
+                        img[i,j-1]]) != 0
+                    ):
+                    list_zeros.append((i,j))
 
-        cv2.imshow('image', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        for one_x, one_y in list_ones:
+            min_distance = [0, 0, 0]
+            for zero_x, zero_y in list_zeros:
+                #distance = abs(zero_x-one_x)+abs(zero_y-one_y)
+                distance = abs(zero_x-one_x)**2+abs(zero_y-one_y)**2
+                distance = int(np.sqrt(distance))
+                if min_distance[0] == 0 or min_distance[0] > distance:
+                    min_distance = [distance, zero_x, zero_y]
+            output[one_x,one_y] = min_distance[0]
+
+        max_d = np.max(output)
+        img = output*int(255/max_d)
+        self.render()
+
+        from tkinter import messagebox
+        ans = messagebox.askyesno('Ridge Detection', 'Would you like to see ridge detection?')
+        if ans== 'no':
+            return
+
+        #Ridge Detecton
+        output2 = np.zeros((n,m), np.uint8)
+        for one_x, one_y in list_ones:
+            if (output[one_x-1,one_y]!=0 and
+                output[one_x-1,one_y] < output[one_x,one_y] and
+                output[one_x+1,one_y]!=0 and
+                output[one_x+1,one_y] < output[one_x,one_y]):
+                output2[one_x,one_y] = 255
+                continue
+            if (output[one_x,one_y-1]!=0 and
+                output[one_x,one_y-1] < output[one_x,one_y] and
+                output[one_x,one_y+1]!=0 and
+                output[one_x,one_y+1] < output[one_x,one_y]):
+                output2[one_x,one_y] = 255
+                continue
+            if (output[one_x-1,one_y-1]!=0 and
+                output[one_x-1,one_y-1] < output[one_x,one_y] and
+                output[one_x+1,one_y+1]!=0 and
+                output[one_x+1,one_y+1] < output[one_x,one_y]):
+                output2[one_x,one_y] = 255
+                continue
+            if (output[one_x-1,one_y+1]!=0 and
+                output[one_x-1,one_y+1] < output[one_x,one_y] and
+                output[one_x+1,one_y-1]!=0 and
+                output[one_x+1,one_y-1] < output[one_x,one_y]):
+                output2[one_x,one_y] = 255
+                continue
+        #Better way
+        #calculate the major eigenvalue of the Hessian matrix at each pixel
+        #from skimage.feature import hessian_matrix, hessian_matrix_eigvals
+
+        #hxx, hxy, hyy = hessian_matrix(img, sigma=3)
+        #i1, i2 = hessian_matrix_eigvals(hxx, hxy, hyy)
+        #img = i1
+
+        img = output2
+        self.render()
+####################################################################################
+# Levent Dane
+####################################################################################
+
 
     def open_file(self):
+
+        global img
         global filename
-        filename = filedialog.askopenfilename(initialdir="/", title="Select file",
+        load = Image.open('bg.png')
+        render = ImageTk.PhotoImage(load)
+
+        # labels can be text or images
+        img = Label(self, image=render)
+        img.image = render
+        img.place(x=0, y=0)
+
+        filename = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                    filetypes=(("PNG files", "*.png"), ("jpeg files", "*.jpg"),
                                                               ("all files", "*.*")))
 
-        global img
+
         img = cv2.imread(filename, 0)
         self.showImg(filename)
 
@@ -373,6 +577,8 @@ class Window(Frame):
         operation.add_command(label='Hit and Miss', underline=0, command=self.call_show_hitmiss)
         operation.add_separator()
         operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
+        operation.add_command(label='Skel_Distance', underline=0, command=self.Skel_Distance)
+        operation.add_command(label='Majority', underline=0, command=self.Majority)
 
         label1 = Label(root, text="Number of Iterations")
         global E1
