@@ -7,7 +7,7 @@ from tkinter import filedialog
 # http://www.lfd.uci.edu/~gohlke/pythonlibs/#pillow
 from PIL import Image, ImageTk
 
-
+# Ref https://github.com/linbojin/Skeletonization-by-Zhang-Suen-Thinning-Algorithm
 def neighbours(x,y,image):
     "Return 8-neighbours of image point P1(x,y), in a clockwise order"
     img = image
@@ -388,19 +388,9 @@ class Window(Frame):
     def Skeletonization(self):
         global img
 
-        n,m = img.shape
-        output = np.zeros((n,m), np.uint8)
-        for i in range(n):
-            for j in range(m):
-                if img[i,j] == 255:
-                    output[i,j] = 1
-        img = zhangSuen(output)
-        output = np.zeros((n,m), np.uint8)
-        for i in range(n):
-            for j in range(m):
-                if img[i,j] == 1:
-                    output[i,j] = 255
-        img = output
+        img = img/255
+        img = zhangSuen(img)
+        img = img*255
 
         self.render()
 
