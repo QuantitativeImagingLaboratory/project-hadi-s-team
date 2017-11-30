@@ -8,6 +8,10 @@ from tkinter import filedialog
 # http://www.lfd.uci.edu/~gohlke/pythonlibs/#pillow
 from PIL import Image, ImageTk
 
+# Zhang-Suen Thinning Algorithm
+# Ref1 https://github.com/linbojin/Skeletonization-by-Zhang-Suen-Thinning-Algorithm
+# Ref2 https://rosettacode.org/wiki/Zhang-Suen_thinning_algorithm#Python
+# Ref3 http://rstudio-pubs-static.s3.amazonaws.com/302782_e337cfbc5ad24922bae96ca5977f4da8.html
 
 def neighbours(x,y,image):
     "Return 8-neighbours of image point P1(x,y), in a clockwise order"
@@ -17,45 +21,50 @@ def neighbours(x,y,image):
                 img[x1][y], img[x1][y_1], img[x][y_1], img[x_1][y_1] ]    # P6,P7,P8,P9
 
 def transitions(neighbours):
-    "No. of 0,1 patterns (transitions from 0 to 1) in the ordered sequence"
     n = neighbours + neighbours[0:1]      # P2, P3, ... , P8, P9, P2
-    return sum( (n1, n2) == (0, 1) for n1, n2 in zip(n, n[1:]) )  # (P2,P3), (P3,P4), ... , (P8,P9), (P9,P2)
+    res = 0
+    for i in range(len(n)-1):
+        if n[i] == 0 and n[i+1] == 1:
+            res+=1
+    return res
 
-def zhangSuen(image):
+def thinning(image):
+    output = image.copy()
+    step1 = []
+    rows, columns  = output.shape
+    # Step1
+    for x in range(1, rows - 1):
+        for y in range(1, columns - 1):
+            P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, output)
+            if (output[x][y] == 1   and # Pixel White? 
+                2 <= sum(n) <= 6    and # How many white neighbour?
+                transitions(n) == 1 and # How many transitions around?
+                P2 * P4 * P6 == 0   and # At least one of the north, east, and south neighbors is white
+                P4 * P6 * P8 == 0):     # At least one of east, south, and west neighbors is white
+                step1.append((x,y))
+    for x, y in step1:
+        output[x][y] = 0
+    # Step 2
+    step2 = []
+    for x in range(1, rows - 1):
+        for y in range(1, columns - 1):
+            P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, output)
+            if (output[x][y] == 1   and
+                2 <= sum(n) <= 6    and
+                transitions(n) == 1 and
+                P2 * P4 * P8 == 0   and # At least one of the north, east, and west neighbors is white
+                P2 * P6 * P8 == 0):     # At least one of north, south, and west neighbors is white
+                step2.append((x,y))
+    for x, y in step2:
+        output[x][y] = 0
+    return output, len(step1) + len(step2)
+
+def skeleton_img(image):
     "the Zhang-Suen Thinning Algorithm"
-    Image_Thinned = image.copy()  # deepcopy to protect the original image
-    changing1 = changing2 = 1        #  the points to be removed (set as 0)
-    while changing1 or changing2:   #  iterates until no further changes occur in the image
-        # Step 1
-        changing1 = []
-        rows, columns = Image_Thinned.shape               # x for rows, y for columns
-        for x in range(1, rows - 1):                     # No. of  rows
-            for y in range(1, columns - 1):            # No. of columns
-                P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, Image_Thinned)
-                if (Image_Thinned[x][y] == 1     and    # Condition 0: Point P1 in the object regions 
-                    2 <= sum(n) <= 6   and    # Condition 1: 2<= N(P1) <= 6
-                    transitions(n) == 1 and    # Condition 2: S(P1)=1  
-                    P2 * P4 * P6 == 0  and    # Condition 3   
-                    P4 * P6 * P8 == 0):         # Condition 4
-                    changing1.append((x,y))
-        for x, y in changing1: 
-            Image_Thinned[x][y] = 0
-        # Step 2
-        changing2 = []
-        for x in range(1, rows - 1):
-            for y in range(1, columns - 1):
-                P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, Image_Thinned)
-                if (Image_Thinned[x][y] == 1   and        # Condition 0
-                    2 <= sum(n) <= 6  and       # Condition 1
-                    transitions(n) == 1 and      # Condition 2
-                    P2 * P4 * P8 == 0 and       # Condition 3
-                    P2 * P6 * P8 == 0):            # Condition 4
-                    changing2.append((x,y))    
-        for x, y in changing2: 
-            Image_Thinned[x][y] = 0
-    return Image_Thinned
-
-
+    done = 1        #  the points to be removed (set as 0)
+    while done:     #  iterates until no further changes occur in the image
+        image, done = thinning(image)
+    return image
 
 
 class Window(Frame):
@@ -389,20 +398,56 @@ class Window(Frame):
     def Skeletonization(self):
         global img
 
+
+        img = img/255
+        img = skeleton_img(img)
+        img = img*255
+
+        self.render()
+
+    def Skel_Distance(self):
+        global img
         n,m = img.shape
         output = np.zeros((n,m), np.uint8)
-        for i in range(n):
-            for j in range(m):
-                if img[i,j] == 255:
-                    output[i,j] = 1
-        img = zhangSuen(output)
-        output = np.zeros((n,m), np.uint8)
+        list_zeros = []
+        list_ones = []
         for i in range(n):
             for j in range(m):
                 if img[i,j] == 1:
-                    output[i,j] = 255
-        img = output
+                   list_ones.append((i,j))
+                if img[i,j] == 0:
+                    list_zeros.append((i,j))
+        for one_x, one_y in list_ones:
+            min_distance = [0, 0, 0]
+            for zero_x, zero_y in list_zeros:
+                distance = abs(zero_x-one_x)+abs(zero_y-one_y)
+                if min_distance[0] == 0 or min_distance[0] > distance:
+                    min_distance = [distance, zero_x, zero_y]
+            output[one_x,one_y] = min_distance[0]
 
+        max_d = np.max(output)
+
+        #Ridge Detecton
+        output2 = np.zeros((n,m), np.uint8)
+        for one_x, one_y in list_ones:
+            if (output[one_x-1,one_y] < output[one_x,one_y] and
+                output[one_x+1,one_y] < output[one_x,one_y]):
+                output2[one_x,one_y] = 255
+                break
+            if (output[one_x,one_y-1] < output[one_x,one_y] and
+                output[one_x,one_y+1] < output[one_x,one_y]):
+                output2[one_x,one_y] = 255
+                break
+            if (output[one_x-1,one_y-1] < output[one_x,one_y] and
+                output[one_x+1,one_y+1] < output[one_x,one_y]):
+                output2[one_x,one_y] = 255
+                break
+            if (output[one_x-1,one_y+1] < output[one_x,one_y] and
+                output[one_x+1,one_y-1] < output[one_x,one_y]):
+                output2[one_x,one_y] = 255
+                break
+
+        img = output2
         self.render()
 
 
