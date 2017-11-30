@@ -8,6 +8,10 @@ from tkinter import filedialog
 # http://www.lfd.uci.edu/~gohlke/pythonlibs/#pillow
 from PIL import Image, ImageTk
 
+####################################################################################
+# Levent Dane
+####################################################################################
+
 # Zhang-Suen Thinning Algorithm
 # Ref1 https://github.com/linbojin/Skeletonization-by-Zhang-Suen-Thinning-Algorithm
 # Ref2 https://rosettacode.org/wiki/Zhang-Suen_thinning_algorithm#Python
@@ -70,6 +74,10 @@ def skeleton_img(image):
     while done:     #  iterates until no further changes occur in the image
         image, done = thinning(image)
     return image
+
+####################################################################################
+# Levent Dane
+####################################################################################
 
 
 class Window(Frame):
@@ -361,6 +369,9 @@ class Window(Frame):
 
         #self.render()
 
+####################################################################################
+# Levent Dane
+####################################################################################
 
     def get_value(self, x):
         if x.get() == '':
@@ -441,29 +452,39 @@ class Window(Frame):
         if ans== 'no':
             return
 
-
         #Ridge Detecton
         output2 = np.zeros((n,m), np.uint8)
         for one_x, one_y in list_ones:
-            if (output[one_x-1,one_y] < output[one_x,one_y] and
+            if (output[one_x-1,one_y]!=0 and
+                output[one_x-1,one_y] < output[one_x,one_y] and
+                output[one_x+1,one_y]!=0 and
                 output[one_x+1,one_y] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
                 continue
-            if (output[one_x,one_y-1] < output[one_x,one_y] and
+            if (output[one_x,one_y-1]!=0 and
+                output[one_x,one_y-1] < output[one_x,one_y] and
+                output[one_x,one_y+1]!=0 and
                 output[one_x,one_y+1] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
                 continue
-            if (output[one_x-1,one_y-1] < output[one_x,one_y] and
+            if (output[one_x-1,one_y-1]!=0 and
+                output[one_x-1,one_y-1] < output[one_x,one_y] and
+                output[one_x+1,one_y+1]!=0 and
                 output[one_x+1,one_y+1] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
                 continue
-            if (output[one_x-1,one_y+1] < output[one_x,one_y] and
+            if (output[one_x-1,one_y+1]!=0 and
+                output[one_x-1,one_y+1] < output[one_x,one_y] and
+                output[one_x+1,one_y-1]!=0 and
                 output[one_x+1,one_y-1] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
                 continue
 
         img = output2
         self.render()
+####################################################################################
+# Levent Dane
+####################################################################################
 
 
     def open_file(self):
