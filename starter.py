@@ -8,6 +8,55 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 
 
+def neighbours(x,y,image):
+    "Return 8-neighbours of image point P1(x,y), in a clockwise order"
+    img = image
+    x_1, y_1, x1, y1 = x-1, y-1, x+1, y+1
+    return [ img[x_1][y], img[x_1][y1], img[x][y1], img[x1][y1],     # P2,P3,P4,P5
+                img[x1][y], img[x1][y_1], img[x][y_1], img[x_1][y_1] ]    # P6,P7,P8,P9
+
+def transitions(neighbours):
+    "No. of 0,1 patterns (transitions from 0 to 1) in the ordered sequence"
+    n = neighbours + neighbours[0:1]      # P2, P3, ... , P8, P9, P2
+    return sum( (n1, n2) == (0, 1) for n1, n2 in zip(n, n[1:]) )  # (P2,P3), (P3,P4), ... , (P8,P9), (P9,P2)
+
+def zhangSuen(image):
+    "the Zhang-Suen Thinning Algorithm"
+    Image_Thinned = image.copy()  # deepcopy to protect the original image
+    changing1 = changing2 = 1        #  the points to be removed (set as 0)
+    while changing1 or changing2:   #  iterates until no further changes occur in the image
+        # Step 1
+        changing1 = []
+        rows, columns = Image_Thinned.shape               # x for rows, y for columns
+        for x in range(1, rows - 1):                     # No. of  rows
+            for y in range(1, columns - 1):            # No. of columns
+                P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, Image_Thinned)
+                if (Image_Thinned[x][y] == 1     and    # Condition 0: Point P1 in the object regions 
+                    2 <= sum(n) <= 6   and    # Condition 1: 2<= N(P1) <= 6
+                    transitions(n) == 1 and    # Condition 2: S(P1)=1  
+                    P2 * P4 * P6 == 0  and    # Condition 3   
+                    P4 * P6 * P8 == 0):         # Condition 4
+                    changing1.append((x,y))
+        for x, y in changing1: 
+            Image_Thinned[x][y] = 0
+        # Step 2
+        changing2 = []
+        for x in range(1, rows - 1):
+            for y in range(1, columns - 1):
+                P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, Image_Thinned)
+                if (Image_Thinned[x][y] == 1   and        # Condition 0
+                    2 <= sum(n) <= 6  and       # Condition 1
+                    transitions(n) == 1 and      # Condition 2
+                    P2 * P4 * P8 == 0 and       # Condition 3
+                    P2 * P6 * P8 == 0):            # Condition 4
+                    changing2.append((x,y))    
+        for x, y in changing2: 
+            Image_Thinned[x][y] = 0
+    return Image_Thinned
+
+
+
+
 class Window(Frame):
 
 
@@ -298,24 +347,67 @@ class Window(Frame):
         #self.render()
 
 
-            # enter your code here
-##########################################################################3
+    def get_value(self, x):
+        if x.get() == '':
+            from tkinter import messagebox
+            messagebox.showerror('Ups', 'Please enter a value')
+        else:
+            return int(x.get())
+
+    def Majority(self):
+        global img
+        self.showImg(filename,)
+
+        it = self.get_value(E1)
+        k = self.get_value(E2)
+
+        n,m = img.shape
+        output = np.zeros((n,m), np.uint8)
+        for x in range(n):
+            for y in range(m):
+                px1=max(x-k,0)
+                px2=min(x+k,n)
+                py1=max(y-k,0)
+                py2=min(y+k,m)
+                # Using np.median and np slicing
+                #output[x,y] = np.median(img[px1:px2,py1:py2])
+                # do manually
+                values = []
+                for i in range(px1,px2):
+                    for j in range(py1,py2):
+                        values.append(img[i,j])
+                values=sorted(values)
+                med = int(len(values)/2)
+                output[x,y] = values[med]
+
+        img = output
+
+        self.render()
+
+
     def Skeletonization(self):
-
         global img
-        global img
-        global E1
-        global E2
 
-        it = int(E1.get())
+        n,m = img.shape
+        output = np.zeros((n,m), np.uint8)
+        for i in range(n):
+            for j in range(m):
+                if img[i,j] == 255:
+                    output[i,j] = 1
+        img = zhangSuen(output)
+        output = np.zeros((n,m), np.uint8)
+        for i in range(n):
+            for j in range(m):
+                if img[i,j] == 1:
+                    output[i,j] = 255
+        img = output
 
-        cv2.imshow('image', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        self.render()
+
 
     def open_file(self):
         global filename
-        filename = filedialog.askopenfilename(initialdir="/", title="Select file",
+        filename = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                    filetypes=(("PNG files", "*.png"), ("jpeg files", "*.jpg"),
                                                               ("all files", "*.*")))
 
@@ -373,6 +465,7 @@ class Window(Frame):
         operation.add_command(label='Hit and Miss', underline=0, command=self.call_show_hitmiss)
         operation.add_separator()
         operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
+        operation.add_command(label='Majority', underline=0, command=self.Majority)
 
         label1 = Label(root, text="Number of Iterations")
         global E1
