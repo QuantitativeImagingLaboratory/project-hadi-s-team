@@ -1,3 +1,4 @@
+
 from tkinter import *
 import numpy as np
 import cv2
@@ -7,9 +8,7 @@ from tkinter import filedialog
 # http://www.lfd.uci.edu/~gohlke/pythonlibs/#pillow
 from PIL import Image, ImageTk
 
-# Zhang-Suen Thinning Algorithm
-# Ref1 https://github.com/linbojin/Skeletonization-by-Zhang-Suen-Thinning-Algorithm
-# Ref2 https://rosettacode.org/wiki/Zhang-Suen_thinning_algorithm#Python
+
 def neighbours(x,y,image):
     "Return 8-neighbours of image point P1(x,y), in a clockwise order"
     img = image
@@ -390,47 +389,40 @@ class Window(Frame):
     def Skeletonization(self):
         global img
 
-        img = img/255
-        img = zhangSuen(img)
-        img = img*255
-
-        self.render()
-
-    def Skel_Distance(self):
-        global img
         n,m = img.shape
         output = np.zeros((n,m), np.uint8)
-
-        list_zeros = []
-        list_ones = []
         for i in range(n):
             for j in range(m):
                 if img[i,j] == 255:
-                    list_ones.append((i,j))
-                if img[i,j] == 0:
-                    list_zeros.append((i,j))
-        for one_x, one_y in list_ones:
-            min_distance = [0, 0, 0]
-            for zero_x, zero_y in list_zeros:
-                distance = abs(zero_x-one_x)+abs(zero_y-one_y)
-                if min_distance[0] == 0 or min_distance[0] > distance:
-                    min_distance = [distance, zero_x, zero_y]
-            output[one_x,one_y] = min_distance[0]
-
-        max_d = np.max(output)
-
-        img = output*int(255/max_d)
+                    output[i,j] = 1
+        img = zhangSuen(output)
+        output = np.zeros((n,m), np.uint8)
+        for i in range(n):
+            for j in range(m):
+                if img[i,j] == 1:
+                    output[i,j] = 255
+        img = output
 
         self.render()
 
 
     def open_file(self):
+
+        global img
         global filename
+        load = Image.open('bg.png')
+        render = ImageTk.PhotoImage(load)
+
+        # labels can be text or images
+        img = Label(self, image=render)
+        img.image = render
+        img.place(x=0, y=0)
+
         filename = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                    filetypes=(("PNG files", "*.png"), ("jpeg files", "*.jpg"),
                                                               ("all files", "*.*")))
 
-        global img
+
         img = cv2.imread(filename, 0)
         self.showImg(filename)
 
@@ -483,9 +475,8 @@ class Window(Frame):
         operation.add_separator()
         operation.add_command(label='Hit and Miss', underline=0, command=self.call_show_hitmiss)
         operation.add_separator()
-        operation.add_command(label='Majority', underline=0, command=self.Majority)
         operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
-        operation.add_command(label='Dist_Skel', underline=0, command=self.Skel_Distance)
+        operation.add_command(label='Majority', underline=0, command=self.Majority)
 
         label1 = Label(root, text="Number of Iterations")
         global E1
