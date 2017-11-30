@@ -42,8 +42,11 @@ def thinning(image):
                 P2 * P4 * P6 == 0   and # At least one of the north, east, and south neighbors is white
                 P4 * P6 * P8 == 0):     # At least one of east, south, and west neighbors is white
                 step1.append((x,y))
+
+    # Clean all the step1 points
     for x, y in step1:
         output[x][y] = 0
+
     # Step 2
     step2 = []
     for x in range(1, rows - 1):
@@ -55,6 +58,8 @@ def thinning(image):
                 P2 * P4 * P8 == 0   and # At least one of the north, east, and west neighbors is white
                 P2 * P6 * P8 == 0):     # At least one of north, south, and west neighbors is white
                 step2.append((x,y))
+
+    # Clean all the step2 points
     for x, y in step2:
         output[x][y] = 0
     return output, len(step1) + len(step2)
@@ -398,7 +403,6 @@ class Window(Frame):
     def Skeletonization(self):
         global img
 
-
         img = img/255
         img = skeleton_img(img)
         img = img*255
@@ -409,14 +413,17 @@ class Window(Frame):
         global img
         n,m = img.shape
         output = np.zeros((n,m), np.uint8)
+
+        #Distance Map
         list_zeros = []
         list_ones = []
         for i in range(n):
             for j in range(m):
-                if img[i,j] == 1:
-                   list_ones.append((i,j))
+                if img[i,j] == 255:
+                    list_ones.append((i,j))
                 if img[i,j] == 0:
                     list_zeros.append((i,j))
+
         for one_x, one_y in list_ones:
             min_distance = [0, 0, 0]
             for zero_x, zero_y in list_zeros:
@@ -426,6 +433,14 @@ class Window(Frame):
             output[one_x,one_y] = min_distance[0]
 
         max_d = np.max(output)
+        img = output*int(255/max_d)
+        self.render()
+
+        from tkinter import messagebox
+        ans = messagebox.askyesno('Ridge Detection', 'Would you like to see ridge detection?')
+        if ans== 'no':
+            return
+
 
         #Ridge Detecton
         output2 = np.zeros((n,m), np.uint8)
@@ -433,19 +448,19 @@ class Window(Frame):
             if (output[one_x-1,one_y] < output[one_x,one_y] and
                 output[one_x+1,one_y] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
-                break
+                continue
             if (output[one_x,one_y-1] < output[one_x,one_y] and
                 output[one_x,one_y+1] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
-                break
+                continue
             if (output[one_x-1,one_y-1] < output[one_x,one_y] and
                 output[one_x+1,one_y+1] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
-                break
+                continue
             if (output[one_x-1,one_y+1] < output[one_x,one_y] and
                 output[one_x+1,one_y-1] < output[one_x,one_y]):
                 output2[one_x,one_y] = 255
-                break
+                continue
 
         img = output2
         self.render()
@@ -521,6 +536,7 @@ class Window(Frame):
         operation.add_command(label='Hit and Miss', underline=0, command=self.call_show_hitmiss)
         operation.add_separator()
         operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
+        operation.add_command(label='Skel_Distance', underline=0, command=self.Skel_Distance)
         operation.add_command(label='Majority', underline=0, command=self.Majority)
 
         label1 = Label(root, text="Number of Iterations")
