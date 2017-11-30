@@ -394,6 +394,33 @@ class Window(Frame):
 
         self.render()
 
+    def Skel_Distance(self):
+        global img
+        n,m = img.shape
+        output = np.zeros((n,m), np.uint8)
+
+        list_zeros = []
+        list_ones = []
+        for i in range(n):
+            for j in range(m):
+                if img[i,j] == 255:
+                    list_ones.append((i,j))
+                if img[i,j] == 0:
+                    list_zeros.append((i,j))
+        for one_x, one_y in list_ones:
+            min_distance = [0, 0, 0]
+            for zero_x, zero_y in list_zeros:
+                distance = abs(zero_x-one_x)+abs(zero_y-one_y)
+                if min_distance[0] == 0 or min_distance[0] > distance:
+                    min_distance = [distance, zero_x, zero_y]
+            output[one_x,one_y] = min_distance[0]
+
+        max_d = np.max(output)
+
+        img = output*int(255/max_d)
+
+        self.render()
+
 
     def open_file(self):
         global filename
@@ -454,8 +481,9 @@ class Window(Frame):
         operation.add_separator()
         operation.add_command(label='Hit and Miss', underline=0, command=self.call_show_hitmiss)
         operation.add_separator()
-        operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
         operation.add_command(label='Majority', underline=0, command=self.Majority)
+        operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
+        operation.add_command(label='Dist_Skel', underline=0, command=self.Skel_Distance)
 
         label1 = Label(root, text="Number of Iterations")
         global E1
