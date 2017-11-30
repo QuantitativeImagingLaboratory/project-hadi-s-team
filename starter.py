@@ -15,7 +15,7 @@ class Window(Frame):
     def showImg(self,f):
 
 
-        load = Image.open( f)
+        load = Image.open(f)
         render = ImageTk.PhotoImage(load)
 
         # labels can be text or images
@@ -57,6 +57,12 @@ class Window(Frame):
 
         global img
         self.close_open()
+        self.render()
+
+    def call_show_hitmiss(self):
+
+        global img
+        self.hitmiss()
         self.render()
 
     def render(self):
@@ -233,6 +239,8 @@ class Window(Frame):
 
         h = img.shape
         ret, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+        print(ret)
+        print(img)
 
         iteration = 4
         dim = 3
@@ -251,6 +259,7 @@ class Window(Frame):
                     flag = 1
 
                     break
+
 
         if (flag == 0):
             for i in range(0, it):
@@ -286,7 +295,7 @@ class Window(Frame):
 
 
 
-        self.render()
+        #self.render()
 
 
             # enter your code here
@@ -361,7 +370,7 @@ class Window(Frame):
         operation.add_separator()
         operation.add_command(label='Close-Open', underline=0, command=self.call_show_close_open)
         operation.add_separator()
-        operation.add_command(label='Hit and Miss', underline=0, command=self.hitmiss)
+        operation.add_command(label='Hit and Miss', underline=0, command=self.call_show_hitmiss)
         operation.add_separator()
         operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
 
