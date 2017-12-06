@@ -600,8 +600,11 @@ class Window(Frame):
         operation.add_command(label='Hit and Miss', underline=0, command=self.call_show_hitmiss)
         operation.add_separator()
         operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
+        operation.add_separator()
         operation.add_command(label='Skel_Distance', underline=0, command=self.Skel_Distance)
+        operation.add_separator()
         operation.add_command(label='Majority', underline=0, command=self.Majority)
+        operation.add_separator()
 
         label1 = Label(root, text="Number of Iterations")
         global E1
