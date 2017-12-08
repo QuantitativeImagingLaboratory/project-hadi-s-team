@@ -1,4 +1,3 @@
-
 from tkinter import *
 import numpy as np
 import cv2
@@ -40,7 +39,7 @@ def thinning(image):
     for x in range(1, rows - 1):
         for y in range(1, columns - 1):
             P2,P3,P4,P5,P6,P7,P8,P9 = n = neighbours(x, y, output)
-            if (output[x][y] == 1   and # Pixel White? 
+            if (output[x][y] == 1   and # Pixel White?
                 2 <= sum(n) <= 6    and # How many white neighbour?
                 transitions(n) == 1 and # How many transitions around?
                 P2 * P4 * P6 == 0   and # At least one of the north, east, and south neighbors is white
@@ -98,42 +97,56 @@ class Window(Frame):
     def call_show_erosion(self):
 
         global img
+        global temp
+        img=temp
         self.erosion()
         self.render()
 
     def call_show_dilation(self):
 
         global img
+        global temp
+        img = temp
         self.dilation()
         self.render()
 
     def call_show_open(self):
 
         global img
+        global temp
+        img = temp
         self.open()
         self.render()
 
     def call_show_close(self):
 
         global img
+        global temp
+        img = temp
         self.close()
         self.render()
 
     def call_show_open_close(self):
 
         global img
+        global temp
+        img = temp
         self.open_close()
         self.render()
 
     def call_show_close_open(self):
 
         global img
+        global temp
+        img = temp
         self.close_open()
         self.render()
 
     def call_show_hitmiss(self):
 
         global img
+        global temp
+        img = temp
         self.hitmiss()
         self.render()
 
@@ -164,7 +177,7 @@ class Window(Frame):
         it = int(iteration)
 
         kernel = np.ones((dim, dim), np.uint8)
-        output = np.zeros((h[0], h[1]), np.uint8)
+
         flag = 0
 
         for py in range(0, h[1]):
@@ -177,6 +190,7 @@ class Window(Frame):
 
         if (flag == 0):
             for i in range(0, it):
+                output = np.zeros((h[0], h[1]), np.uint8)
                 for py in range(int(dim / 2), h[1] - int(dim / 2)):
                     for px in range(int(dim / 2), h[0] - int(dim / 2)):
 
@@ -189,11 +203,12 @@ class Window(Frame):
                         if (sum == (dim * dim * 255)):
                             output[px, py] = 255
 
-            img = output
+                img = output
 
         else:
 
             for i in range(0, it):
+                output = np.zeros((h[0], h[1]), np.uint8)
                 for py in range(int(dim / 2), h[1] - int(dim / 2)):
                     for px in range(int(dim / 2), h[0] - int(dim / 2)):
 
@@ -206,7 +221,7 @@ class Window(Frame):
 
                         output[px, py] = min
 
-            img = output
+                img = output
 
 
 ###################################################################################
@@ -248,7 +263,7 @@ class Window(Frame):
                         if (sum > (255)):
                             output[px, py] = 255
 
-            img = output
+                img = output
 
         else:
 
@@ -265,7 +280,7 @@ class Window(Frame):
 
                         output[px, py] = max
 
-            img = output
+                img = output
 
     def open(self):
 
@@ -382,6 +397,8 @@ class Window(Frame):
 
     def Majority(self):
         global img
+        global temp
+        img = temp
         self.showImg(filename,)
 
         it = self.get_value(E1)
@@ -413,6 +430,8 @@ class Window(Frame):
 
     def Skeletonization(self):
         global img
+        global temp
+        img = temp
 
         img = img/255
         img = skeleton_img(img)
@@ -422,6 +441,8 @@ class Window(Frame):
 
     def Skel_Distance(self):
         global img
+        global temp
+        img = temp
         n,m = img.shape
         output = np.zeros((n,m), np.uint8)
 
@@ -510,6 +531,7 @@ class Window(Frame):
     def open_file(self):
 
         global img
+        global temp
         global filename
         load = Image.open('bg.png')
         render = ImageTk.PhotoImage(load)
@@ -525,6 +547,7 @@ class Window(Frame):
 
 
         img = cv2.imread(filename, 0)
+        temp = cv2.imread(filename, 0)
         self.showImg(filename)
 
     # Define settings upon initialization. Here you can specify
@@ -577,8 +600,11 @@ class Window(Frame):
         operation.add_command(label='Hit and Miss', underline=0, command=self.call_show_hitmiss)
         operation.add_separator()
         operation.add_command(label='Skeletonization', underline=0, command=self.Skeletonization)
+        operation.add_separator()
         operation.add_command(label='Skel_Distance', underline=0, command=self.Skel_Distance)
+        operation.add_separator()
         operation.add_command(label='Majority', underline=0, command=self.Majority)
+        operation.add_separator()
 
         label1 = Label(root, text="Number of Iterations")
         global E1
