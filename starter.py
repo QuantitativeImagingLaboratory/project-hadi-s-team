@@ -329,8 +329,9 @@ class Window(Frame):
         #print(ret)
         #print(img)
 
-        iteration = 4
+        iteration1 = 4
         dim = 3
+        iteration = (E1.get())
 
         it = int(iteration)
 
@@ -347,20 +348,21 @@ class Window(Frame):
 
                     break
 
-
+        #print("interation",it)
         if (flag == 0):
             for i in range(0, it):
-
-                if (it==0):
+             for j in range(0, iteration1):
+                #print("count")
+                if (iteration1==0):
                     kernel = np.array([[0, 1, 0], [0, 1, 1], [0, 0, 0]])
 
-                if (it==1):
+                if (iteration1==1):
                     kernel = np.array([[0, 1, 0], [1, 1, 0], [0, 0, 0]])
 
-                if (it==2):
+                if (iteration1==2):
                     kernel = np.array([[0, 0, 0], [1, 1, 0], [0, 1, 0]])
 
-                if (it==3):
+                if (iteration1==3):
                     kernel = np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]])
 
 
